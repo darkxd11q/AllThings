@@ -1,17 +1,23 @@
-# 📚 Ders Çalışma Programı (Gemini AI — Ücretsiz)
+# 📚 Ders Çalışma Programı
+
+Tamamen ücretsiz HuggingFace AI destekli ders çalışma programı.
+
+## 🤖 Kullanılan AI Modeller
+
+| Öncelik | Model |
+|---|---|
+| 1. (Ana) | Qwen/Qwen2.5-7B-Instruct |
+| 2. (Yedek) | meta-llama/Llama-3.1-8B-Instruct |
+
+Birinci model kota dolunca veya hata verince otomatik ikinciye geçer.
 
 ---
 
-## 🔑 Ücretsiz API Anahtarı Nasıl Alınır?
+## 🔑 Ücretsiz API Anahtarı (2 dakika)
 
-1. https://aistudio.google.com adresine git
-2. Google hesabınla giriş yap
-3. "Get API Key" → "Create API key"
-4. Anahtarı kopyala, .env dosyasına yapıştır
-
-✅ Kredi kartı YOK  
-✅ Günlük 1500 istek ücretsiz  
-✅ gemini-2.0-flash — hızlı ve akıllı
+1. https://huggingface.co — hesap aç
+2. https://huggingface.co/settings/tokens — "New token"
+3. "Read" yetkisi seç → oluştur → kopyala
 
 ---
 
@@ -19,19 +25,18 @@
 
 npm install
 cp .env.example .env
-# .env dosyasını aç, GEMINI_API_KEY=AIzaSy... satırını doldur
+# .env dosyasını aç → HF_API_KEY=hf_... satırını doldur
 node server.js
 # http://localhost:3000
 
 ---
 
-## Dosya Yapısı
+## Dosyalar
 
 ders-programi/
-├── server.js        ← Express + Gemini AI
+├── server.js        ← Express + HuggingFace AI (Qwen → Llama fallback)
 ├── package.json
-├── .env.example     ← API anahtar şablonu
-├── .env             ← Kendi anahtarın (git'e ekleme!)
+├── .env.example
 ├── data.json        ← Kayıtlı programlar (otomatik oluşur)
 └── public/
-    └── index.html   ← Tüm frontend
+    └── index.html
