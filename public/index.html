@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Ders Çalışma Programı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;600&family=VT323&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET ── */
+*{box-sizing:border-box;margin:0;padding:0}
+/* ── CSS VARIABLES (tema sistemi) ── */
+:root{
+  --bg:#1a0533;
+  --surface:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.13);
+  --drawer:#12102a;
+  --text:#e8e0ff;
+  --muted:rgba(232,224,255,0.5);
+  --primary:#a78bfa;
+  --accent:#22d3ee;
+  --th-bg:rgba(167,139,250,0.15);
+  --hover:rgba(167,139,250,0.18);
+  --input:rgba(255,255,255,0.08);
+  --tab:rgba(167,139,250,0.12);
+  --radius:14px;
+  --pill:22px;
+  --font:'Space Mono',monospace;
+  --fsize:13px;
+  --blur:blur(12px);
+  --cell-h:44px;
+}
+/* ── BASE ── */
+body{background:var(--bg);font-family:var(--font);font-size:var(--fsize);color:var(--text);min-height:100vh;transition:background .4s,color .3s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--primary);border-radius:99px;opacity:.5}
+/* ── INPUTS ── */
+input,textarea,select{
+  outline:none;font-family:var(--font);font-size:var(--fsize);color:var(--text);
+  background:var(--input);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;width:100%;box-sizing:border-box;transition:border-color .2s;
+}
+input:focus,textarea:focus{border-color:var(--primary)}
+textarea{resize:vertical;line-height:1.6}
+input[type=range]{accent-color:var(--primary);cursor:pointer;padding:0;border:none;background:transparent}
+input[type=color]{border:none;background:none;cursor:pointer;width:32px;height:32px;padding:0;border-radius:4px}
+input[type=checkbox]{accent-color:var(--primary);width:15px;height:15px;cursor:pointer}
+/* ── BUTTONS ── */
+button{cursor:pointer;font-family:var(--font);font-size:var(--fsize);transition:all .18s;border:none}
+button:not(:disabled):hover{filter:brightness(1.1);transform:translateY(-1px)}
+button:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
+.btn-pill{
+  background:transparent;color:var(--primary);
+  border:1.5px solid var(--primary)!important;
+  border-radius:var(--pill);padding:7px 16px;font-weight:700;
+}
+.btn-pill.on,.btn-pill:focus-visible{
+  background:var(--primary);color:#fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.3);
+}
+.btn-save{background:var(--primary);color:#fff;border-radius:var(--pill);padding:7px 16px;font-weight:700;border:none;}
+.btn-save.saved{background:#22c55e!important}
+.btn-danger{background:rgba(239,68,68,.12);color:#ef4444;border:1.5px solid rgba(239,68,68,.3)!important;border-radius:var(--pill);padding:7px 12px;}
+/* ── CARD ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  backdrop-filter:var(--blur);
+  box-shadow:0 4px 24px rgba(0,0,0,.25);
+}
+/* ── ANIMATIONS ── */
+@keyframes slideIn{from{transform:translateX(50px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.fade-up{animation:fadeUp .35s ease forwards}
+/* ── HEADER ── */
+#header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:11px 20px;display:flex;align-items:center;gap:11px;
+  position:sticky;top:0;z-index:100;flex-wrap:wrap;
+  backdrop-filter:var(--blur);
+}
+#page-title{
+  font-size:17px;font-weight:700;cursor:text;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;flex:1;
+}
+#title-input{font-size:17px;font-weight:700;max-width:260px;width:auto;padding:4px 10px;flex:1}
+.theme-dot{
+  width:20px;height:20px;border-radius:50%;
+  border:2.5px solid transparent;cursor:pointer;padding:0;
+  transition:all .2s;flex-shrink:0;
+}
+.theme-dot.active{border-color:var(--primary);box-shadow:0 0 8px var(--primary)}
+#theme-dots{display:flex;gap:5px;flex-wrap:wrap}
+#header-btns{display:flex;gap:7px;flex-shrink:0}
+/* ── MAIN ── */
+#main{padding:16px 20px;max-width:1400px;margin:0 auto}
+/* ── STATS ── */
+#stats-bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.stat-card{padding:11px 15px;display:flex;gap:9px;align-items:center}
+.stat-icon{font-size:20px}
+.stat-label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.12em}
+.stat-num{font-weight:700;font-size:21px;line-height:1}
+/* ── PICKER ── */
+#picker{padding:12px 16px;margin-bottom:14px}
+.hint{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:9px}
+#subjects-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.sub-btn{
+  border-radius:var(--pill);padding:5px 13px;font-weight:700;
+  border:2px solid;font-family:var(--font);font-size:var(--fsize);
+  transition:all .18s;
+}
+.sub-btn.sel{transform:scale(1.06)}
+/* ── TABLE ── */
+#table-wrap{margin-bottom:14px;overflow:hidden}
+#table-scroll{overflow:auto;max-height:66vh}
+table{border-collapse:collapse;width:100%;min-width:520px}
+th,td{border:1px solid var(--border)}
+.th-time{
+  position:sticky;left:0;top:0;z-index:10;
+  width:60px;min-width:60px;padding:10px 6px;
+  background:var(--th-bg);color:var(--muted);
+  font-size:10px;text-transform:uppercase;letter-spacing:.1em;
+  font-family:var(--font);text-align:center;
+}
+.th-day{
+  position:sticky;top:0;z-index:5;
+  padding:9px 6px;min-width:86px;
+  background:var(--th-bg);color:var(--text);
+  font-family:var(--font);font-weight:700;font-size:var(--fsize);text-align:center;
+}
+.th-day-sub{font-size:10px;color:var(--muted);font-weight:400}
+.td-time{
+  position:sticky;left:0;z-index:4;
+  height:var(--cell-h);padding:0 6px;
+  background:var(--th-bg);color:var(--muted);
+  font-size:10px;font-family:var(--font);
+  font-weight:600;text-align:center;white-space:nowrap;
+}
+.td-cell{
+  height:var(--cell-h);text-align:center;vertical-align:middle;
+  user-select:none;transition:background .08s;cursor:default;
+}
+.td-cell.paint-mode{cursor:crosshair}
+.cell-lbl{font-size:11px;font-weight:700;pointer-events:none}
+/* ── NOTES ── */
+#notes-wrap{padding:15px}
+.section-hd{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:9px}
+/* ── OVERLAY ── */
+.overlay{position:fixed;inset:0;z-index:500;display:flex}
+.overlay-bg{flex:1;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+/* ── PANEL ── */
+.panel{
+  width:400px;background:var(--drawer);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  animation:slideIn .25s ease;overflow:hidden;
+}
+.panel-hd{
+  padding:15px 20px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
+}
+.panel-title{font-size:16px;font-weight:700;color:var(--text)}
+.panel-close{background:none;border:none;color:var(--muted);font-size:24px;line-height:1;padding:0}
+.panel-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{
+  flex:1;padding:10px 2px;border:none;background:transparent;
+  color:var(--muted);font-family:var(--font);font-size:10px;font-weight:600;
+  border-bottom:2.5px solid transparent;transition:all .18s;
+}
+.tab.active{background:var(--tab);color:var(--primary);border-bottom-color:var(--primary)}
+/* ── THEMES GRID ── */
+.themes-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.theme-card{
+  cursor:pointer;border-radius:12px;overflow:hidden;
+  border:1.5px solid var(--border);transition:all .2s;
+}
+.theme-card:hover{transform:scale(1.03)}
+.theme-card.active{border-width:2.5px;border-color:var(--primary);box-shadow:0 0 16px rgba(0,0,0,.3)}
+.theme-preview{height:50px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.theme-label{padding:7px 10px;font-size:12px}
+/* ── SUBJECT EDITOR ── */
+.sub-row{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 10px;border-radius:10px;margin-bottom:6px;
+}
+.sub-name-inp{flex:1;width:auto;padding:5px 8px}
+.rm-btn{background:none;border:none;color:#ef4444;font-size:18px;line-height:1;padding:0 3px}
+.rm-btn:hover{transform:none!important;filter:brightness(1.3)!important}
+.add-row{
+  display:flex;gap:7px;align-items:center;
+  padding-top:13px;border-top:1px solid var(--border);
+}
+/* ── AI ── */
+.quick-q{
+  background:var(--tab);border:1px solid var(--border);
+  border-radius:var(--radius);padding:9px 13px;
+  text-align:left;color:var(--text);width:100%;
+  font-family:var(--font);font-size:12px;margin-bottom:6px;
+}
+.quick-q:hover{border-color:var(--primary);background:var(--hover);transform:none!important}
+.ai-reply{
+  background:var(--tab);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px;
+  line-height:1.7;white-space:pre-wrap;animation:fadeUp .3s ease;
+}
+.spinner{
+  display:inline-block;width:16px;height:16px;
+  border:2px solid var(--primary);border-top-color:transparent;
+  border-radius:50%;animation:spin .7s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:var(--primary);color:#fff;
+  padding:11px 20px;border-radius:var(--pill);font-weight:700;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transform:translateY(80px);opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;
+}
+#toast.show{transform:translateY(0);opacity:1}
+/* ── RANGE HELPERS ── */
+.range-wrap label{color:var(--muted);font-size:11px;display:block;margin-bottom:7px}
+.range-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:3px}
+/* ── CHECK ROW ── */
+.check-row{display:flex;align-items:center;gap:10px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ═══════════════════════════════════════════════════════════════ -->
+<header id="header">
+  <span id="page-title" title="Düzenle ✏️" onclick="startEditTitle()">Ders Çalışma Programım 📚</span>
+  <input id="title-input" style="display:none" onblur="finishEditTitle()" onkeydown="if(event.key==='Enter')finishEditTitle()"/>
+
+  <div id="theme-dots"></div>
+
+  <div id="header-btns">
+    <button class="btn-pill" id="btn-ai" onclick="togglePanel('ai')">✨ AI</button>
+    <button class="btn-pill" id="btn-settings" onclick="togglePanel('settings')">⚙️ Ayarlar</button>
+    <button class="btn-save" id="btn-save" onclick="saveData()">💾 Kaydet</button>
+    <button class="btn-danger" onclick="clearSchedule()" title="Programı temizle">🗑️</button>
+  </div>
+</header>
+
+<!-- ══ MAIN ══════════════════════════════════════════════════════════════════ -->
+<main id="main">
+  <div id="stats-bar"></div>
+  <div id="picker" class="card">
+    <div class="hint" id="picker-hint">📌 Ders seç, sonra tabloya tıkla ya da sürükle</div>
+    <div id="subjects-row"></div>
+  </div>
+  <div id="table-wrap" class="card">
+    <div id="table-scroll"><table id="schedule-table"></table></div>
+  </div>
+  <div id="notes-wrap" class="card" style="display:none">
+    <div class="section-hd">📝 Notlarım</div>
+    <textarea id="notes-ta" rows="4" placeholder="Hedefler, hatırlatıcılar, motivasyon... 💪" oninput="state.notes=this.value"></textarea>
+  </div>
+</main>
+
+<!-- ══ AI PANEL ══════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="ai-panel" style="display:none">
+  <div class="overlay-bg" onclick="closePanel()"></div>
+  <div class="panel" style="width:420px">
+    <div class="panel-hd">
+      <span class="panel-title">✨ AI Asistan</span>
+      <button class="panel-close" onclick="closePanel()">×</button>
+    </div>
+    <div class="panel-body">
+      <div style="color:var(--muted);font-size:12px;line-height:1.6">
+        Programın hakkında soru sor, öneri al veya motivasyon iste 🚀<br>
+        <span id="ai-api-warn" style="color:#f59e0b;display:none">⚠️ API anahtarı ayarlanmamış — sunucu tarafından kontrol et.</span>
+      </div>
+      <div>
+        <button class="quick-q" onclick="fillAI('Programım nasıl görünüyor?')">📊 Programım nasıl görünüyor?</button>
+        <button class="quick-q" onclick="fillAI('Hangi derse daha çok çalışmalıyım?')">🎯 Hangi derse daha çok çalışmalıyım?</button>
+        <button class="quick-q" onclick="fillAI('Bana bir haftalık çalışma tavsiyesi ver')">📅 Haftalık çalışma tavsiyesi ver</button>
+        <button class="quick-q" onclick="fillAI('Beni motive et! 💪')">🔥 Beni motive et!</button>
+      </div>
+      <textarea id="ai-input" rows="3" placeholder="Kendi sorunuzu yazın... (Enter ile gönder)"></textarea>
+      <button class="btn-pill on" id="ai-send-btn" onclick="sendAI()">Gönder ↵</button>
+      <div id="ai-reply-box" style="display:none" class="ai-reply"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS PANEL ════════════════════════════════════════════════════════ -->
+<div class="overlay" id="settings-panel" style="display:none">
+  <div class="overlay-bg" onclick="closePanel()"></div>
+  <div class="panel">
+    <div class="panel-hd">
+      <span class="panel-title">⚙️ Ayarlar</span>
+      <button class="panel-close" onclick="closePanel()">×</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('themes',this)">🎨 Temalar</button>
+      <button class="tab" onclick="switchTab('subjects',this)">📚 Dersler</button>
+      <button class="tab" onclick="switchTab('time',this)">⏰ Zaman</button>
+      <button class="tab" onclick="switchTab('display',this)">🖥️ Görünüm</button>
+    </div>
+    <!-- Tab contents -->
+    <div class="panel-body" id="tab-themes">
+      <div style="color:var(--muted);font-size:11px">Tema seç:</div>
+      <div class="themes-grid" id="themes-grid"></div>
+    </div>
+    <div class="panel-body" id="tab-subjects" style="display:none">
+      <div style="color:var(--muted);font-size:11px">Derslerini düzenle:</div>
+      <div id="sub-editor"></div>
+      <div class="add-row">
+        <input type="color" id="new-sub-color" value="#6366f1"/>
+        <input id="new-sub-name" placeholder="Yeni ders adı..." onkeydown="if(event.key==='Enter')addSubject()"/>
+        <button class="btn-pill on" onclick="addSubject()" style="white-space:nowrap;padding:7px 12px">+ Ekle</button>
+      </div>
+    </div>
+    <div class="panel-body" id="tab-time" style="display:none">
+      <div class="range-wrap">
+        <label>Başlangıç saati: <strong id="lbl-start" style="color:var(--primary)">07:00</strong></label>
+        <input type="range" min="4" max="12" value="7" id="range-start" oninput="setStartH(+this.value)"/>
+        <div class="range-labels"><span>04:00</span><span>12:00</span></div>
+      </div>
+      <div class="range-wrap">
+        <label>Bitiş saati: <strong id="lbl-end" style="color:var(--primary)">22:00</strong></label>
+        <input type="range" min="14" max="24" value="22" id="range-end" oninput="setEndH(+this.value)"/>
+        <div class="range-labels"><span>14:00</span><span>24:00</span></div>
+      </div>
+      <label class="check-row">
+        <input type="checkbox" id="chk-weekend" checked onchange="setWeekend(this.checked)"/>
+        <span>Hafta sonunu göster (Cmt–Paz)</span>
+      </label>
+    </div>
+    <div class="panel-body" id="tab-display" style="display:none">
+      <div class="range-wrap">
+        <label>Yazı boyutu: <strong id="lbl-fsize" style="color:var(--primary)">13px</strong></label>
+        <input type="range" min="11" max="18" value="13" id="range-fsize" oninput="setFontSize(+this.value)"/>
+      </div>
+      <div>
+        <div style="color:var(--muted);font-size:11px;margin-bottom:9px">Hücre boyutu</div>
+        <div style="display:flex;gap:7px">
+          <button class="btn-pill" id="cell-small" onclick="setCellSize('small')">Küçük</button>
+          <button class="btn-pill on" id="cell-medium" onclick="setCellSize('medium')">Orta</button>
+          <button class="btn-pill" id="cell-large" onclick="setCellSize('large')">Büyük</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <div style="color:var(--muted);font-size:11px">Bölümleri göster / gizle</div>
+        <label class="check-row"><input type="checkbox" id="chk-stats" checked onchange="toggleSection('stats',this.checked)"/> 📊 İstatistikler</label>
+        <label class="check-row"><input type="checkbox" id="chk-picker" checked onchange="toggleSection('picker',this.checked)"/> 🏷️ Ders seçici</label>
+        <label class="check-row"><input type="checkbox" id="chk-notes" onchange="toggleSection('notes',this.checked)"/> 📝 Notlar</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ═════════════════════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────────────────────
+const state = {
+  title:    "Ders Çalışma Programım 📚",
+  themeKey: "aurora",
+  subjects: [
+    {id:1, name:"Matematik",  color:"#ef4444"},
+    {id:2, name:"Fizik",      color:"#3b82f6"},
+    {id:3, name:"Kimya",      color:"#a855f7"},
+    {id:4, name:"Biyoloji",   color:"#22c55e"},
+    {id:5, name:"Türkçe",     color:"#f59e0b"},
+    {id:6, name:"İngilizce",  color:"#06b6d4"},
+    {id:7, name:"Tarih",      color:"#ec4899"},
+    {id:8, name:"Mola ☕",    color:"#64748b"},
+  ],
+  schedule:  {},   // { "Pazartesi": { "07:00": 1, ... }, ... }
+  selected:  null, // { id, name, color }
+  dragging:  false,
+  startH:    7,
+  endH:      22,
+  weekend:   true,
+  fontSize:  13,
+  cellSize:  "medium",
+  notes:     "",
+  showStats:   true,
+  showPicker:  true,
+  showNotes:   false,
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  THEMES
+// ─────────────────────────────────────────────────────────────────────────────
+const THEMES = {
+  aurora: {
+    name:"Aurora",emoji:"🌌",
+    preview:"linear-gradient(135deg,#1a0533,#0d1b4b,#0a3d4a)",
+    drawerBg:"#12102a", nameBg:"#e8e0ff",
+    vars:{"--bg":"linear-gradient(135deg,#1a0533 0%,#0d1b4b 50%,#0a3d4a 100%)","--surface":"rgba(255,255,255,0.07)","--border":"rgba(255,255,255,0.13)","--drawer":"#12102a","--text":"#e8e0ff","--muted":"rgba(232,224,255,0.5)","--primary":"#a78bfa","--accent":"#22d3ee","--th-bg":"rgba(167,139,250,0.15)","--hover":"rgba(167,139,250,0.18)","--input":"rgba(255,255,255,0.08)","--tab":"rgba(167,139,250,0.12)","--radius":"14px","--pill":"22px","--font":"'Space Mono',monospace","--blur":"blur(12px)"},
+  },
+  sakura: {
+    name:"Sakura",emoji:"🌸",
+    preview:"linear-gradient(135deg,#fce4ec,#f8bbd9,#fce4ec)",
+    drawerBg:"#fff0f8", nameBg:"#5c1a4e",
+    vars:{"--bg":"linear-gradient(150deg,#fff0f5 0%,#ffe4ef 60%,#fff5f7 100%)","--surface":"rgba(255,255,255,0.9)","--border":"#f9c1d8","--drawer":"#fff0f8","--text":"#5c1a4e","--muted":"#b07898","--primary":"#d63384","--accent":"#ff85b3","--th-bg":"#fce4ec","--hover":"#fff0f5","--input":"rgba(255,255,255,0.97)","--tab":"#fce4ec","--radius":"18px","--pill":"28px","--font":"'Nunito',sans-serif","--blur":"none"},
+  },
+  midnight: {
+    name:"Midnight",emoji:"🌙",
+    preview:"linear-gradient(135deg,#0f0f12,#1a1a2e)",
+    drawerBg:"#111115", nameBg:"#f0f0ff",
+    vars:{"--bg":"#0f0f12","--surface":"#18181c","--border":"#2a2a35","--drawer":"#111115","--text":"#f0f0ff","--muted":"#666688","--primary":"#818cf8","--accent":"#38bdf8","--th-bg":"#1e1e26","--hover":"#252530","--input":"#1e1e26","--tab":"#252530","--radius":"8px","--pill":"8px","--font":"'IBM Plex Mono',monospace","--blur":"none"},
+  },
+  golden: {
+    name:"Golden Hour",emoji:"🌅",
+    preview:"linear-gradient(135deg,#ff6b35,#f7931e,#ffcd3c)",
+    drawerBg:"#1a0d00", nameBg:"#fff3e0",
+    vars:{"--bg":"linear-gradient(150deg,#1a0800 0%,#2d1500 50%,#1a0a00 100%)","--surface":"rgba(255,160,50,0.08)","--border":"rgba(247,147,30,0.22)","--drawer":"#1a0d00","--text":"#fff3e0","--muted":"rgba(255,243,224,0.5)","--primary":"#f7931e","--accent":"#ffcd3c","--th-bg":"rgba(247,147,30,0.12)","--hover":"rgba(255,200,50,0.12)","--input":"rgba(255,160,50,0.1)","--tab":"rgba(247,147,30,0.15)","--radius":"12px","--pill":"20px","--font":"'Playfair Display',serif","--blur":"blur(10px)"},
+  },
+  matcha: {
+    name:"Matcha",emoji:"🍵",
+    preview:"linear-gradient(135deg,#e8f5e9,#c8e6c9,#a5d6a7)",
+    drawerBg:"#f0f8f0", nameBg:"#1b4332",
+    vars:{"--bg":"linear-gradient(135deg,#f1f8f1 0%,#e8f5e9 100%)","--surface":"rgba(255,255,255,0.88)","--border":"#a5d6a7","--drawer":"#f0f8f0","--text":"#1b4332","--muted":"#52796f","--primary":"#2d6a4f","--accent":"#52b788","--th-bg":"#d8f3dc","--hover":"#eaf5ec","--input":"rgba(255,255,255,0.95)","--tab":"#d8f3dc","--radius":"16px","--pill":"24px","--font":"'Lora',serif","--blur":"none"},
+  },
+  cyber: {
+    name:"Cyber",emoji:"💿",
+    preview:"linear-gradient(135deg,#ff00ff,#00ffff,#ff00aa)",
+    drawerBg:"#080018", nameBg:"#d0f8ff",
+    vars:{"--bg":"linear-gradient(135deg,#070010 0%,#0f0020 50%,#060018 100%)","--surface":"rgba(0,255,255,0.06)","--border":"rgba(0,255,255,0.22)","--drawer":"#080018","--text":"#d0f8ff","--muted":"rgba(208,248,255,0.45)","--primary":"#00ffff","--accent":"#ff00ff","--th-bg":"rgba(0,255,255,0.08)","--hover":"rgba(255,0,255,0.1)","--input":"rgba(0,255,255,0.08)","--tab":"rgba(0,255,255,0.1)","--radius":"4px","--pill":"4px","--font":"'VT323',monospace","--blur":"blur(10px)"},
+  },
+  noir: {
+    name:"Noir",emoji:"🎞️",
+    preview:"linear-gradient(135deg,#111,#222,#111)",
+    drawerBg:"#0e0e0e", nameBg:"#f0ede8",
+    vars:{"--bg":"#111","--surface":"#1a1a1a","--border":"#2f2f2f","--drawer":"#0e0e0e","--text":"#f0ede8","--muted":"#777","--primary":"#d4af37","--accent":"#f0ede8","--th-bg":"#1f1f1f","--hover":"#242424","--input":"#1f1f1f","--tab":"#222","--radius":"2px","--pill":"2px","--font":"'Cormorant Garamond',serif","--blur":"none"},
+  },
+  candy: {
+    name:"Candy Pop",emoji:"🍬",
+    preview:"linear-gradient(135deg,#ffecd2,#fcb69f,#ff6b6b)",
+    drawerBg:"#fff5ee", nameBg:"#7b2d00",
+    vars:{"--bg":"linear-gradient(135deg,#ffecd2 0%,#fcb69f 50%,#ffecd2 100%)","--surface":"rgba(255,255,255,0.78)","--border":"rgba(252,182,159,0.55)","--drawer":"#fff5ee","--text":"#7b2d00","--muted":"#c4704a","--primary":"#ff6b6b","--accent":"#ffd166","--th-bg":"rgba(255,107,107,0.1)","--hover":"rgba(255,107,107,0.12)","--input":"rgba(255,255,255,0.9)","--tab":"rgba(255,107,107,0.1)","--radius":"20px","--pill":"30px","--font":"'Nunito',sans-serif","--blur":"none"},
+  },
+};
+
+const DAYS   = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+const DAYS_S = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+
+function mkTimes(s,e){return Array.from({length:e-s},(_,i)=>`${String(s+i).padStart(2,"0")}:00`);}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  THEME
+// ─────────────────────────────────────────────────────────────────────────────
+function applyTheme(key) {
+  state.themeKey = key;
+  const t = THEMES[key];
+  const root = document.documentElement;
+  Object.entries(t.vars).forEach(([k,v]) => root.style.setProperty(k,v));
+  // fsize
+  root.style.setProperty("--fsize", state.fontSize + "px");
+  renderThemeDots();
+  renderThemesGrid();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RENDER: THEME DOTS
+// ─────────────────────────────────────────────────────────────────────────────
+function renderThemeDots() {
+  const wrap = document.getElementById("theme-dots");
+  wrap.innerHTML = "";
+  Object.entries(THEMES).forEach(([k,t]) => {
+    const btn = document.createElement("button");
+    btn.className = "theme-dot" + (k===state.themeKey?" active":"");
+    btn.style.background = t.preview;
+    btn.title = t.name;
+    btn.onclick = () => applyTheme(k);
+    wrap.appendChild(btn);
+  });
+}
+
+function renderThemesGrid() {
+  const grid = document.getElementById("themes-grid");
+  if(!grid) return;
+  grid.innerHTML = "";
+  Object.entries(THEMES).forEach(([k,t]) => {
+    const card = document.createElement("div");
+    card.className = "theme-card" + (k===state.themeKey?" active":"");
+    card.innerHTML = `
+      <div class="theme-preview" style="background:${t.preview}">${t.emoji}</div>
+      <div class="theme-label" style="background:${t.drawerBg};color:${t.nameBg}">
+        ${t.name}${k===state.themeKey?" ✓":""}
+      </div>`;
+    card.onclick = () => applyTheme(k);
+    grid.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RENDER: STATS
+// ─────────────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const bar = document.getElementById("stats-bar");
+  if(!state.showStats){ bar.style.display="none"; return; }
+  bar.style.display = "flex";
+  bar.innerHTML = "";
+
+  const totalH = Object.values(state.schedule).reduce(
+    (a,d) => a + Object.values(d).filter(c=>c).length, 0
+  );
+
+  const addCard = (icon, label, num, color) => {
+    const d = document.createElement("div");
+    d.className = "card stat-card fade-up";
+    d.innerHTML = `<span class="stat-icon">${icon}</span><div><div class="stat-label">${label}</div><div class="stat-num" style="color:${color}">${num}h</div></div>`;
+    bar.appendChild(d);
+  };
+  addCard("⏱️","Toplam",totalH,"var(--primary)");
+
+  const subStats = state.subjects.map(s=>({
+    ...s,
+    cnt: Object.values(state.schedule).reduce((a,d)=>a+Object.values(d).filter(c=>c===s.id).length,0)
+  })).filter(s=>s.cnt>0).sort((a,b)=>b.cnt-a.cnt);
+
+  subStats.slice(0,5).forEach(s => addCard(
+    `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.color}"></span>`,
+    s.name, s.cnt, s.color
+  ));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RENDER: SUBJECT PICKER
+// ─────────────────────────────────────────────────────────────────────────────
+function renderPicker() {
+  const wrap = document.getElementById("picker");
+  wrap.style.display = state.showPicker ? "" : "none";
+  const row = document.getElementById("subjects-row");
+  row.innerHTML = "";
+
+  state.subjects.forEach(s => {
+    const on = state.selected?.id === s.id;
+    const btn = document.createElement("button");
+    btn.className = "sub-btn" + (on?" sel":"");
+    btn.textContent = s.name;
+    btn.style.borderColor = s.color;
+    btn.style.color = on ? "#fff" : s.color;
+    btn.style.background = on ? s.color : s.color+"18";
+    if(on) btn.style.boxShadow = `0 4px 14px ${s.color}55`;
+    btn.onclick = () => {
+      state.selected = on ? null : s;
+      renderPicker();
+      document.getElementById("picker-hint").textContent =
+        state.selected ? `✏️ ${state.selected.name} seçili — tabloya tıkla / sürükle` : "📌 Ders seç, sonra tabloya tıkla ya da sürükle";
+      document.getElementById("schedule-table").querySelectorAll(".td-cell")
+        .forEach(td => td.classList.toggle("paint-mode", !!state.selected));
+    };
+    row.appendChild(btn);
+  });
+
+  if(state.selected) {
+    const cancel = document.createElement("button");
+    cancel.style.cssText = "background:transparent;color:var(--muted);border:1.5px dashed var(--border);border-radius:var(--pill);padding:5px 13px;font-family:var(--font);font-size:var(--fsize)";
+    cancel.textContent = "✕ İptal";
+    cancel.onclick = () => { state.selected=null; renderPicker(); renderTable(); };
+    row.appendChild(cancel);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RENDER: TABLE
+// ─────────────────────────────────────────────────────────────────────────────
+function renderTable() {
+  const table = document.getElementById("schedule-table");
+  const days  = state.weekend ? DAYS : DAYS.slice(0,5);
+  const daysS = state.weekend ? DAYS_S : DAYS_S.slice(0,5);
+  const times = mkTimes(state.startH, state.endH);
+  const cellH = state.cellSize==="small"?32:state.cellSize==="large"?56:44;
+  document.documentElement.style.setProperty("--cell-h", cellH+"px");
+
+  // Header
+  let html = "<thead><tr>";
+  html += `<th class="th-time">Saat</th>`;
+  days.forEach((d,i) => {
+    html += `<th class="th-day">${d}<div class="th-day-sub">${daysS[i]}</div></th>`;
+  });
+  html += "</tr></thead><tbody>";
+
+  // Rows
+  times.forEach(time => {
+    html += "<tr>";
+    html += `<td class="td-time">${time}</td>`;
+    days.forEach(day => {
+      const sid = state.schedule[day]?.[time];
+      const sub = sid ? state.subjects.find(s=>s.id===sid) : null;
+      const borderLeft = sub ? `3px solid ${sub.color}` : `1px solid var(--border)`;
+      const bg = sub ? sub.color+"22" : "transparent";
+      const lbl = sub ? `<span class="cell-lbl" style="color:${sub.color}">${state.cellSize==="small"?sub.name.slice(0,3):sub.name}</span>` : "";
+      const paintClass = state.selected ? " paint-mode" : "";
+      html += `<td class="td-cell${paintClass}" data-day="${day}" data-time="${time}" style="background:${bg};border-left:${borderLeft}">${lbl}</td>`;
+    });
+    html += "</tr>";
+  });
+  html += "</tbody>";
+  table.innerHTML = html;
+
+  // Events (drag paint)
+  table.querySelectorAll(".td-cell").forEach(td => {
+    td.addEventListener("mousedown",  e => { state.dragging=true; paintCell(td); e.preventDefault(); });
+    td.addEventListener("mouseenter", () => { if(state.dragging) paintCell(td); });
+    td.addEventListener("mouseover",  () => { if(!state.schedule[td.dataset.day]?.[td.dataset.time] && state.selected) td.style.background="var(--hover)"; });
+    td.addEventListener("mouseout",   () => { if(!state.schedule[td.dataset.day]?.[td.dataset.time]) td.style.background="transparent"; });
+  });
+  document.addEventListener("mouseup", () => state.dragging=false, {once:false});
+}
+
+function paintCell(td) {
+  if(!state.selected) return;
+  const {day,time} = td.dataset;
+  if(!state.schedule[day]) state.schedule[day] = {};
+  const ex = state.schedule[day][time];
+  state.schedule[day][time] = (ex===state.selected.id) ? null : state.selected.id;
+  // Fast re-paint just this cell
+  const sub = state.selected && state.schedule[day][time] ? state.selected : null;
+  td.style.background = sub ? sub.color+"22" : "transparent";
+  td.style.borderLeft = sub ? `3px solid ${sub.color}` : `1px solid var(--border)`;
+  td.innerHTML = sub ? `<span class="cell-lbl" style="color:${sub.color}">${state.cellSize==="small"?sub.name.slice(0,3):sub.name}</span>` : "";
+  renderStats();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RENDER: SUBJECT EDITOR
+// ─────────────────────────────────────────────────────────────────────────────
+function renderSubEditor() {
+  const wrap = document.getElementById("sub-editor");
+  if(!wrap) return;
+  wrap.innerHTML = "";
+  state.subjects.forEach(s => {
+    const row = document.createElement("div");
+    row.className = "sub-row";
+    row.style.background = s.color+"10";
+    row.style.border = `1px solid ${s.color}30`;
+    row.innerHTML = `
+      <input type="color" value="${s.color}" onchange="updateSubColor(${s.id},this.value)"/>
+      <input class="sub-name-inp" value="${s.name}" onchange="updateSubName(${s.id},this.value)"/>
+      <button class="rm-btn" onclick="removeSubject(${s.id})">×</button>`;
+    wrap.appendChild(row);
+  });
+}
+
+function updateSubColor(id,color){ state.subjects=state.subjects.map(s=>s.id===id?{...s,color}:s); renderPicker(); renderTable(); renderSubEditor(); }
+function updateSubName(id,name){ state.subjects=state.subjects.map(s=>s.id===id?{...s,name}:s); renderPicker(); renderTable(); }
+function removeSubject(id){
+  if(state.subjects.length<=1){ showToast("En az 1 ders olmalı!"); return; }
+  state.subjects = state.subjects.filter(s=>s.id!==id);
+  if(state.selected?.id===id) state.selected=null;
+  Object.keys(state.schedule).forEach(d => {
+    Object.keys(state.schedule[d]).forEach(t => { if(state.schedule[d][t]===id) state.schedule[d][t]=null; });
+  });
+  renderPicker(); renderTable(); renderStats(); renderSubEditor();
+}
+function addSubject(){
+  const name = document.getElementById("new-sub-name").value.trim();
+  const color = document.getElementById("new-sub-color").value;
+  if(!name){ showToast("Ders adı boş olamaz!"); return; }
+  state.subjects.push({id:Date.now(),name,color});
+  document.getElementById("new-sub-name").value="";
+  renderPicker(); renderSubEditor();
+  showToast("✅ Ders eklendi: "+name);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SETTINGS HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function setStartH(v){ state.startH=v; document.getElementById("lbl-start").textContent=String(v).padStart(2,"0")+":00"; renderTable(); }
+function setEndH(v){ state.endH=v; document.getElementById("lbl-end").textContent=String(v).padStart(2,"0")+":00"; renderTable(); }
+function setWeekend(v){ state.weekend=v; renderTable(); }
+function setFontSize(v){ state.fontSize=v; document.getElementById("lbl-fsize").textContent=v+"px"; document.documentElement.style.setProperty("--fsize",v+"px"); }
+function setCellSize(v){
+  state.cellSize=v;
+  ["small","medium","large"].forEach(k => document.getElementById("cell-"+k).classList.toggle("on",k===v));
+  renderTable();
+}
+function toggleSection(name,val){
+  if(name==="stats"){ state.showStats=val; renderStats(); }
+  if(name==="picker"){ state.showPicker=val; renderPicker(); }
+  if(name==="notes"){ state.showNotes=val; document.getElementById("notes-wrap").style.display=val?"":"none"; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TITLE EDIT
+// ─────────────────────────────────────────────────────────────────────────────
+function startEditTitle(){
+  const ti = document.getElementById("title-input");
+  const tp = document.getElementById("page-title");
+  ti.value = state.title;
+  tp.style.display="none"; ti.style.display="";
+  ti.focus();
+}
+function finishEditTitle(){
+  const ti = document.getElementById("title-input");
+  const tp = document.getElementById("page-title");
+  state.title = ti.value || state.title;
+  tp.textContent = state.title;
+  tp.style.display=""; ti.style.display="none";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  CLEAR
+// ─────────────────────────────────────────────────────────────────────────────
+function clearSchedule(){
+  if(!confirm("Tüm program silinsin mi?")) return;
+  state.schedule={};
+  renderTable(); renderStats();
+  showToast("🗑️ Program temizlendi");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PANEL
+// ─────────────────────────────────────────────────────────────────────────────
+let currentPanel = null;
+function togglePanel(name){
+  if(currentPanel===name){ closePanel(); return; }
+  closePanel();
+  currentPanel = name;
+  const el = document.getElementById(name+"-panel");
+  el.style.display="flex";
+  if(name==="settings"){ renderThemesGrid(); renderSubEditor(); }
+  document.getElementById("btn-"+name).classList.add("on");
+}
+function closePanel(){
+  if(!currentPanel) return;
+  document.getElementById(currentPanel+"-panel").style.display="none";
+  document.getElementById("btn-"+currentPanel).classList.remove("on");
+  currentPanel=null;
+}
+function switchTab(name, btn){
+  ["themes","subjects","time","display"].forEach(t=>{
+    document.getElementById("tab-"+t).style.display = t===name?"flex":"none";
+  });
+  document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  if(name==="themes") renderThemesGrid();
+  if(name==="subjects") renderSubEditor();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  AI
+// ─────────────────────────────────────────────────────────────────────────────
+function fillAI(q){ document.getElementById("ai-input").value=q; }
+document.addEventListener("DOMContentLoaded",()=>{
+  document.getElementById("ai-input").addEventListener("keydown", e=>{
+    if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); sendAI(); }
+  });
+});
+async function sendAI(){
+  const msg = document.getElementById("ai-input").value.trim();
+  if(!msg) return;
+  const btn = document.getElementById("ai-send-btn");
+  const box = document.getElementById("ai-reply-box");
+  btn.disabled=true;
+  btn.innerHTML=`<span class="spinner"></span>Düşünüyor...`;
+  box.style.display="none";
+  try{
+    const r = await fetch("/api/ai",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message:msg, schedule:state.schedule, subjects:state.subjects})
+    });
+    const d = await r.json();
+    if(d.ok){
+      box.textContent = d.reply;
+      box.style.display="block";
+    } else {
+      box.textContent = "⚠️ " + (d.error||"Hata oluştu");
+      box.style.display="block";
+    }
+  }catch(e){
+    box.textContent="⚠️ Sunucuya bağlanılamadı. Sunucunun çalıştığından emin ol.";
+    box.style.display="block";
+  }
+  btn.disabled=false;
+  btn.innerHTML="Gönder ↵";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SAVE / LOAD (backend API)
+// ─────────────────────────────────────────────────────────────────────────────
+async function saveData(){
+  const btn = document.getElementById("btn-save");
+  btn.textContent="Kaydediliyor...";
+  btn.disabled=true;
+
+  // Notes'u da al
+  state.notes = document.getElementById("notes-ta").value;
+
+  const payload = {
+    title:state.title, themeKey:state.themeKey,
+    subjects:state.subjects, schedule:state.schedule,
+    startH:state.startH, endH:state.endH, weekend:state.weekend,
+    fontSize:state.fontSize, cellSize:state.cellSize, notes:state.notes,
+    showStats:state.showStats, showPicker:state.showPicker, showNotes:state.showNotes,
+  };
+  try{
+    const r = await fetch("/api/save",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({key:"default", data:payload})
+    });
+    const d = await r.json();
+    if(d.ok){
+      btn.textContent="✓ Kaydedildi!";
+      btn.classList.add("saved");
+      showToast("💾 Program kaydedildi!");
+      setTimeout(()=>{ btn.textContent="💾 Kaydet"; btn.classList.remove("saved"); btn.disabled=false; },2000);
+    } else {
+      showToast("❌ Kayıt başarısız: "+d.error);
+      btn.textContent="💾 Kaydet"; btn.disabled=false;
+    }
+  }catch(e){
+    showToast("❌ Sunucuya bağlanılamadı.");
+    btn.textContent="💾 Kaydet"; btn.disabled=false;
+  }
+}
+
+async function loadData(){
+  try{
+    const r = await fetch("/api/load?key=default");
+    const d = await r.json();
+    if(d.ok && d.data){
+      const p = d.data;
+      if(p.title)     { state.title=p.title; document.getElementById("page-title").textContent=p.title; }
+      if(p.themeKey)  state.themeKey = p.themeKey;
+      if(p.subjects)  state.subjects = p.subjects;
+      if(p.schedule)  state.schedule = p.schedule;
+      if(p.startH!=null){ state.startH=p.startH; document.getElementById("range-start").value=p.startH; document.getElementById("lbl-start").textContent=String(p.startH).padStart(2,"0")+":00"; }
+      if(p.endH!=null){ state.endH=p.endH; document.getElementById("range-end").value=p.endH; document.getElementById("lbl-end").textContent=String(p.endH).padStart(2,"0")+":00"; }
+      if(p.weekend!=null){ state.weekend=p.weekend; document.getElementById("chk-weekend").checked=p.weekend; }
+      if(p.fontSize){ state.fontSize=p.fontSize; document.getElementById("range-fsize").value=p.fontSize; document.getElementById("lbl-fsize").textContent=p.fontSize+"px"; }
+      if(p.cellSize){ state.cellSize=p.cellSize; setCellSize(p.cellSize); }
+      if(p.notes){ state.notes=p.notes; document.getElementById("notes-ta").value=p.notes; }
+      if(p.showStats!=null){ state.showStats=p.showStats; document.getElementById("chk-stats").checked=p.showStats; }
+      if(p.showPicker!=null){ state.showPicker=p.showPicker; document.getElementById("chk-picker").checked=p.showPicker; }
+      if(p.showNotes!=null){ state.showNotes=p.showNotes; document.getElementById("chk-notes").checked=p.showNotes; if(p.showNotes) document.getElementById("notes-wrap").style.display=""; }
+      showToast("📂 Kayıtlı program yüklendi!");
+    }
+  }catch(e){ /* sunucu yok, devam et */ }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),2800);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────────────────────
+async function init(){
+  applyTheme(state.themeKey);
+  await loadData();
+  applyTheme(state.themeKey); // tekrar uygula (load sonrası)
+  renderStats();
+  renderPicker();
+  renderTable();
+  renderThemeDots();
+}
+init();
+</script>
+</body>
+</html>
